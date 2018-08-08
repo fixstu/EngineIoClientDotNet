@@ -35,7 +35,6 @@ namespace Quobject.EngineIoClientDotNet.Client
         public static readonly string EVENT_UPGRADING = "upgrading";
         public static readonly string EVENT_UPGRADE = "upgrade";
         public static readonly string EVENT_PACKET_CREATE = "packetCreate";
-        public static readonly string EVENT_HEARTBEAT = "heartbeat";
         public static readonly string EVENT_TRANSPORT = "transport";
 
         public static readonly int Protocol = Parser.Parser.Protocol;
@@ -467,7 +466,6 @@ namespace Quobject.EngineIoClientDotNet.Client
                 log.Info(string.Format("socket received: type '{0}', data '{1}'", packet.Type, packet.Data));
 
                 Emit(EVENT_PACKET, packet);
-                Emit(EVENT_HEARTBEAT);
 
                 if (packet.Type == Packet.OPEN)
                 {
@@ -514,43 +512,10 @@ namespace Quobject.EngineIoClientDotNet.Client
                 return;
             }
             this.SetPing();
-
-            this.Off(EVENT_HEARTBEAT, new OnHeartbeatAsListener(this));
-            this.On(EVENT_HEARTBEAT, new OnHeartbeatAsListener(this));
-
         }
-
-        private class OnHeartbeatAsListener : IListener
-        {
-            private Socket socket;
-
-            public OnHeartbeatAsListener(Socket socket)
-            {
-                this.socket = socket;
-            }
-
-            void IListener.Call(params object[] args)
-            {
-                socket.OnHeartbeat(args.Length > 0 ? (long)args[0] : 0);
-            }
-
-            public int CompareTo(IListener other)
-            {
-                return this.GetId().CompareTo(other.GetId());
-            }
-
-            public int GetId()
-            {
-                return 0;
-            }
-        }
-
-
 
         private void SetPing()
         {
-            //var log = LogManager.GetLogger(Global.CallerName());
-
             if (this.PingIntervalTimer != null)
             {
                 PingIntervalTimer.Stop();
